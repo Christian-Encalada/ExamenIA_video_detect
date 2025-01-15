@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vehicle Detection System</title>
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --background-color: #f5f6fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--secondary-color);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚗</text></svg>') center/50px repeat;
+            opacity: 0.1;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            from { background-position: 0 0; }
+            to { background-position: 100% 100%; }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .video-container {
+            background: white;
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        #videoStream {
+            width: 100%;
+            max-width: 1000px;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-play {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-pause {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .btn-report {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #status {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .success {
+            background-color: rgba(39, 174, 96, 0.1);
+            border-left: 4px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .error {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--error-color);
+            color: var(--error-color);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1);
+        }
+
+        .stat-card h3 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .btn-replay {
+            background-color: #8e44ad;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-replay:hover {
+            background-color: #6c3483;
+        }
+
+        /* Animación para el botón de replay */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .btn-replay {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-car-side"></i> AI Vehicle Detection System</h1>
+    </header>
+
+    <div class="container">
+        <div class="video-container">
+            <img id="videoStream" src="/video_feed" alt="Video Stream">
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-play" onclick="playVideo()">
+                <i class="fas fa-play"></i> Play
+            </button>
+            <button class="btn btn-pause" onclick="pauseVideo()">
+                <i class="fas fa-pause"></i> Pause
+            </button>
+            <button class="btn btn-report" onclick="generateReport()">
+                <i class="fas fa-file-pdf"></i> Generate Report
+            </button>
+            <button class="btn btn-replay" onclick="replayVideo()" style="display: none;">
+                <i class="fas fa-redo"></i> Replay
+            </button>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <i class="fas fa-car stat-icon"></i>
+                <h3>Cars</h3>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-truck stat-icon"></i>
+                <h3>Trucks</h3>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-bus stat-icon"></i>
+                <h3>Buses</h3>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-motorcycle stat-icon"></i>
+                <h3>Motorcycles</h3>
+            </div>
+        </div>
+
+        <div id="replay-container" style="display: none;" class="controls">
+            <button class="btn btn-replay" onclick="replayVideo()">
+                <i class="fas fa-redo"></i> Replay Video
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let isPlaying = true;
+
+        async function playVideo() {
+            try {
+                const response = await fetch('/play', { method: 'POST' });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    isPlaying = true;
+                    updateButtonStates();
+                    animateButton(document.querySelector('.btn-play'));
+                }
+            } catch (error) {
+                showError('Error playing video');
+            }
+        }
+
+        async function pauseVideo() {
+            try {
+                const response = await fetch('/pause', { method: 'POST' });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    isPlaying = false;
+                    updateButtonStates();
+                    animateButton(document.querySelector('.btn-pause'));
+                }
+            } catch (error) {
+                showError('Error pausing video');
+            }
+        }
+
+        function updateButtonStates() {
+            const playBtn = document.querySelector('.btn-play');
+            const pauseBtn = document.querySelector('.btn-pause');
+            
+            if (isPlaying) {
+                playBtn.disabled = true;
+                playBtn.style.opacity = '0.5';
+                pauseBtn.disabled = false;
+                pauseBtn.style.opacity = '1';
+            } else {
+                playBtn.disabled = false;
+                playBtn.style.opacity = '1';
+                pauseBtn.disabled = true;
+                pauseBtn.style.opacity = '0.5';
+            }
+        }
+
+        async function generateReport() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating report...';
+            statusDiv.className = '';
+            
+            try {
+                const response = await fetch('/generate_report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.className = 'success';
+                    statusDiv.innerHTML = `
+                        <i class="fas fa-check-circle"></i> ${data.message}<br>
+                        <a href="${data.pdf_url}" target="_blank" class="btn btn-report" style="display: inline-block; margin-top: 10px;">
+                            <i class="fas fa-file-pdf"></i> View PDF Report
+                        </a>
+                    `;
+                } else {
+                    showError(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function showError(message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'error';
+            statusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> Error: ${message}`;
+        }
+
+        function animateButton(button) {
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        async function replayVideo() {
+            try {
+                const response = await fetch('/replay', { method: 'POST' });
+                if (response.ok) {
+                    isPlaying = true;
+                    updateButtonStates();
+                    animateButton(document.querySelector('.btn-replay'));
+                    const videoStream = document.getElementById('videoStream');
+                    videoStream.src = '/video_feed?' + new Date().getTime();
+                    document.querySelector('.btn-replay').style.display = 'none';
+                }
+            } catch (error) {
+                showError('Error replaying video');
+            }
+        }
+
+        function checkVideoStatus() {
+            fetch('/video_status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.finished) {
+                    document.querySelector('.btn-replay').style.display = 'inline-flex';
+                    isPlaying = false;
+                    updateButtonStates();
+                }
+                isPlaying = data.playing;
+                updateButtonStates();
+            });
+        }
+
+        // Verificar estado del video cada 2 segundos
+        setInterval(checkVideoStatus, 2000);
+
+        // Inicializar estados de botones
+        updateButtonStates();
+    </script>
+</body>
+</html>
