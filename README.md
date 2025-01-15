@@ -22,7 +22,7 @@ Sistema de detección y clasificación de vehículos usando inteligencia artific
 
 2. Clonar el repositorio:
 ```powershell
-git clone https://github.com/tu-usuario/ai-vehicle-detection.git
+git clone 
 cd ai-vehicle-detection
 ```
 
@@ -37,14 +37,14 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-5. Configurar el modelo:
+5. ejecutar el modelo:
 ```powershell
-python -m src.utils.setup
+python src/utils/setup.py
 ```
 
 ## Uso
 
-1. Coloca tu video de prueba:
+1. Coloca tu video de prueba(oh usa el que ya viene):
    - Renombra tu video a `input_video.mp4`
    - Cópialo a la carpeta `data/videos/`
 
@@ -68,7 +68,7 @@ http://localhost:5000
 ```powershell
 python -m src.generate_report
 ```
-   El reporte se guardará en `data/output/vehicle_detection_report.pdf`
+   El reporte se guardará en `data//vehicle_detection_report.pdf`
 
 ## Solución de Problemas
 
@@ -99,7 +99,7 @@ python -m src.utils.setup
   - `utils/`: Utilidades y herramientas
 
 ## Autor
-[TU_NOMBRE]
+[Christian Encalada]
 
 ## Licencia
 MIT
